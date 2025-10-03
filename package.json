@@ -1,0 +1,23 @@
+{
+  "name": "nats-rpc",
+  "version": "1.0.0",
+  "description": "NodeJS NATS RPC library",
+  "homepage": "https://github.com/redspirit/nats-rpc#readme",
+  "bugs": {
+    "url": "https://github.com/redspirit/nats-rpc/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/redspirit/nats-rpc.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "nats": "^2.29.3"
+  }
+}
