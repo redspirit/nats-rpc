@@ -5,7 +5,7 @@ const jc = JSONCodec();
 export class NATS {
     constructor(connectionConfig = {}, opts = {}) {
         this.connectionConfig = connectionConfig;
-        this.defaultTimeout = opts.defaultTimeout ?? 1000;
+        this.defaultTimeout = opts.defaultTimeout ?? 10000;
         this.nc = null;
         this.js = null;
         this._subs = new Set();
