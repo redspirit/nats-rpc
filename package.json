@@ -1,23 +1,29 @@
 {
-  "name": "nats-rpc",
-  "version": "1.0.0",
-  "description": "NodeJS NATS RPC library",
-  "homepage": "https://github.com/redspirit/nats-rpc#readme",
-  "bugs": {
-    "url": "https://github.com/redspirit/nats-rpc/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/redspirit/nats-rpc.git"
-  },
-  "license": "ISC",
-  "author": "",
-  "type": "module",
-  "main": "src/index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "dependencies": {
-    "nats": "^2.29.3"
-  }
+    "name": "nats-rpc",
+    "version": "1.0.0",
+    "description": "NodeJS NATS RPC library",
+    "homepage": "https://github.com/redspirit/nats-rpc#readme",
+    "bugs": {
+        "url": "https://github.com/redspirit/nats-rpc/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/redspirit/nats-rpc.git"
+    },
+    "license": "ISC",
+    "author": "",
+    "type": "module",
+    "main": "src/index.js",
+    "scripts": {
+        "test": "mocha test/* --timeout 10000 --exit"
+    },
+    "dependencies": {
+        "nats": "^2.29.3"
+    },
+    "devDependencies": {
+        "chai": "^6.2.0",
+        "mocha": "^11.7.4",
+        "proxyquire": "^2.1.3",
+        "sinon": "^21.0.0"
+    }
 }

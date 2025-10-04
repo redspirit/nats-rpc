@@ -61,22 +61,22 @@ run();
 ### Отправка события (fire-and-forget)
 
 ```js
-import { RPC } from "nats-rpc-easy";
+import { NATS } from "nats-rpc";
 
-const user = new RPC("user");
+const nats = new NATS();
 
-await user.emit("created", { id: 1, name: "Alice" });
+await nats.emit("created", { id: 1, name: "Alice" });
 console.log("Event sent: user.created");
 ```
 
 ### Подписка на событие
 
 ```js
-import { RPC } from "nats-rpc-easy";
+import { NATS } from "nats-rpc";
 
-const user = new RPC("user");
+const nats = new NATS();
 
-await user.on("created", async (data) => {
+await nats.on("created", async (data) => {
   console.log("New user created:", data);
 });
 ```
@@ -89,17 +89,17 @@ await user.on("created", async (data) => {
 
 ```js
 // worker1.js
-await rpc.on("jobs.process", async (job) => {
+await nats.on("jobs.process", async (job) => {
   console.log("Worker 1 processed:", job);
 }, "workers");
 
 // worker2.js (тоже в группе "workers")
-await rpc.on("jobs.process", async (job) => {
+await nats.on("jobs.process", async (job) => {
   console.log("Worker 2 processed:", job);
 }, "workers");
 
 // publisher.js
-await rpc.emit("jobs.process", { task: "resize-image" });
+await nats.emit("jobs.process", { task: "resize-image" });
 ```
 
 В этом случае только один из подписчиков в группе `workers` получит сообщение.
@@ -111,7 +111,7 @@ await rpc.emit("jobs.process", { task: "resize-image" });
 ### Конструктор
 
 ```js
-const rpc = new RPC(serviceName?, url?);
+const nats = new NATS(serviceName?, url?);
 ```
 
 * `serviceName` — (опционально) строка, добавляется как префикс к subject: `serviceName.method`.
