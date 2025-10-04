@@ -6,7 +6,7 @@ import { NATS } from '../src/index.js';
 
     // вызов RPC-метода
     try {
-        const sum = await nats.call('math.add', { a: 2, b: 3 });
+        const sum = await nats.call('math.add', { a: 2, b: 3 }, {timeout: 1000});
         console.log('RPC result: 2 + 3 =', sum);
     } catch (err) {
         console.error('RPC error code:', err);
