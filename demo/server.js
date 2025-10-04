@@ -15,7 +15,7 @@ import { NATS } from '../src/index.js';
     });
 
     // подписываемся на событие user.created
-    await nats.on('user.created111', async (data) => {
+    await nats.on('user.created', async (data) => {
         console.log('Event received: user.created ->', data);
     });
 
