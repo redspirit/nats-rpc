@@ -43,13 +43,15 @@ import NATS from 'nats-rpc';
 
   // Объявляем RPC сервис (нересурсный)
   await nats.service('math', {
-    add: async (data) => data.a + data.b,
-    sqrt: async (data) => Math.sqrt(data.n),
+    add: async (a, b) => a + b,
+    sqrt: async (n) => Math.sqrt(n),
   });
 
   // Вызываем RPC
+  const mathService = nats.getService('math');
+  const add = mathService.fn('add');
   try {
-    const sum = await nats.call('math.add', { a: 2, b: 3 });
+    const sum = await add(2, 3);
     console.log('RPC result:', sum);
   } catch (err) {
     console.error('RPC error:', err);
@@ -126,65 +128,9 @@ const nats = new NATS(connectionConfig, { defaultTimeout: 1000 });
 
 ---
 
-## JetStream (persist) API
-
-> JetStream обеспечивает устойчивость сообщений при временной недоступности потребителей.
-
-### callPersist(subject, data, options)
-
-Публикует RPC-запрос в JetStream и ожидает ответа на временный reply-inbox.
-
-Опции:
-
-* `timeout` (ms) — время ожидания ответа (по умолчанию `defaultTimeout`)
-* `jsStreamOptions` — опции при создании stream (передаются в `ensureStreamForSubject`, например `{ no_ack: true }`)
-
-Ошибки (в `err.code`):
-
-* `RPC_TIMEOUT` — не получили ответ в пределах `timeout`
-* `RPC_REMOTE_ERROR` — служба вернула `{ __error: true }`
-* `RPC_NO_REPLY` — не получили reply (редкий случай)
-
-**Замечание:** `callPersist` гарантирует, что запрос попадёт в JetStream, но reply по-прежнему доставляется в реальном времени на временный inbox — клиент должен оставаться подключённым пока ждёт ответ.
-
-### servicePersist(name, handlers, serviceOpts)
-
-Регистрирует устойчивые обработчики, которые читают запросы из JetStream (durable consumer).
-
-* `serviceOpts.queue` — delivery group (внутренняя load balancing)
-* `serviceOpts.streamOpts` — опции при создании stream (передаются в ensureStreamForSubject)
-
-Поведение:
-
-* После успешной обработки отправляет ответ на `reply` subject (если он указан) и `ack()` сообщение.
-* При ошибке отправляет `{ __error: true, ... }` на `reply` и также `ack()` сообщение (чтобы не было повторных доставок). Если требуется повторы при ошибке — можно изменить логику ACK/NACK в коде (см. раздел «Изменение поведения ACK/NACK»).
-
----
-
-## Примеры: JetStream RPC
-
-```js
-// Сервер (устойчивый)
-await nats.servicePersist('math', {
-  add: async (data) => data.a + data.b,
-}, { queue: 'math-workers', streamOpts: { no_ack: true } });
-
-// Клиент
-try {
-  const res = await nats.callPersist('math.add', { a: 5, b: 6 }, { timeout: 10000 });
-  console.log('res', res);
-} catch (err) {
-  if (err.code === 'RPC_TIMEOUT') console.error('timeout');
-  else if (err.code === 'RPC_REMOTE_ERROR') console.error('remote error', err.remoteStack);
-  else console.error(err);
-}
-```
-
----
-
 ## Изменение поведения ACK/NACK (опционально)
 
-По умолчанию `servicePersist` делает `m.ack()` даже при ошибке обработчика — это предотвращает бесконечные повторные доставки и считается безопасным для большинства сценариев, где служба сама отвечает клиенту об ошибке. Если вы хотите, чтобы сообщение повторно доставлялось при ошибке, замените `m.ack()` на `m.nak()` или пропустите `ack()` (требуется аккуратно настроить `max Deliver` и retry/Backoff на стороне JetStream consumer).
+По умолчанию `servicePersist` делает `m.ack()` даже при ошибке обработчика — это предотвращает бесконечные повторные доставки и считается безопасным для большинства сценариев, где служба сама отвечает клиенту об ошибке. Если вы хотите, чтобы сообщение повторно доставлялось при ошибке, замените `m.ack()` на `m.na
 
 ---
 
@@ -192,7 +138,6 @@ try {
 
 * **NO_RESPONDERS / 503** при `call()` — если нет слушателей, библиотека нормализует ошибку и выдаёт `err.code === 'RPC_NO_RESPONDERS'`.
 * **RPC_TIMEOUT** — сервис не ответил в указанное время. Проверьте, запущен ли слушатель и нет ли сетевых проблем.
-* **JetStream ошибки при publish** — убедитесь, что NATS сервер запущен с `-js` и имеется доступ к менеджеру JetStream (проверьте лог сервера).
 
 ---
 

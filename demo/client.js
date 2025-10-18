@@ -4,10 +4,18 @@ import { NATS } from '../src/index.js';
     const connectionConfig = { servers: 'nats://localhost:4222', name: 'demo-client' };
     const nats = new NATS(connectionConfig, { defaultTimeout: 2000 });
 
+    const mathService = nats.getService('math');
+    const add = mathService.fn('add');
+    const sqrt = mathService.fn('sqrt');
+
+
     // вызов RPC-метода
     try {
-        const sum = await nats.call('math.add', { a: 2, b: 3 }, {timeout: 1000});
+        const sum = await add(2, 3);
         console.log('RPC result: 2 + 3 =', sum);
+
+        const res = await sqrt(81);
+        console.log('RPC result sqrt 81 =', res);
     } catch (err) {
         console.error('RPC error code:', err);
     }

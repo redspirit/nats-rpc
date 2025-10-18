@@ -6,11 +6,13 @@ import { NATS } from '../src/index.js';
 
     // объявялем RPC методы
     nats.service('math', {
-        add: async (data) => {
-            return data.a + data.b;
+        add: async (a, b) => {
+            console.log('add 2 numbers', a, b);
+            return a + b;
         },
-        sqrt: async (data) => {
-            return Math.sqrt(data.n);
+        sqrt: async (n) => {
+            console.log('sqrt from', n);
+            return Math.sqrt(n);
         },
     });
 
