@@ -9,15 +9,63 @@ export class NATS {
         this.nc = null;
         this.js = null;
         this._subs = new Set();
+
+        // internal flags
+        this._statusWatcherStarted = false;
+        this._statusWatcherPromise = null;
     }
 
     async connect() {
         if (this.nc) return this.nc;
         this.nc = await connect(this.connectionConfig);
+
+        // closed() promise for final close
         this.nc.closed().then((err) => {
             if (err) console.error('NATS connection closed with error:', err);
             else console.info('NATS connection closed.');
         });
+
+        // Start a single status monitor to log reconnect/disconnect events.
+        if (!this._statusWatcherStarted) {
+            this._statusWatcherStarted = true;
+            this._statusWatcherPromise = (async () => {
+                try {
+                    // status() is an async iterator that yields status updates
+                    for await (const s of this.nc.status()) {
+                        // Try to inspect common fields safely; fallback to stringified object
+                        let info;
+                        try {
+                            if (typeof s === 'string') info = s;
+                            else if (s && typeof s === 'object' && (s.type || s.kind || s.status))
+                                info = s.type ?? s.kind ?? s.status;
+                            else info = JSON.stringify(s);
+                        } catch (e) {
+                            info = String(s);
+                        }
+
+                        // We only log important events at info/warn level
+                        const low = String(info).toLowerCase();
+                        if (/\b(reconnect|reconnected|reconnecting)\b/.test(low)) {
+                            console.info(`NATS reconnect status: ${info}`);
+                        } else if (/\b(disconnect|disconnected|disconnecting)\b/.test(low)) {
+                            console.warn(`NATS disconnect status: ${info}`);
+                        } else if (/\b(connected|connect)\b/.test(low)) {
+                            console.info(`NATS connected: ${info}`);
+                        } else {
+                            // debug-level info for other statuses
+                            // you can change this to console.info if you prefer more verbosity
+                            console.debug(`NATS status: ${info}`);
+                        }
+                    }
+                } catch (err) {
+                    // status iterator ends when connection is closed; log and continue
+                    console.warn('NATS status iterator ended:', err?.message ?? err);
+                } finally {
+                    this._statusWatcherStarted = false;
+                }
+            })();
+        }
+
         return this.nc;
     }
 
