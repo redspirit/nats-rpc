@@ -19,6 +19,10 @@ import { NATS } from '../src/index.js';
     // подписываемся на событие user.created
     await nats.on('user.created', async (data) => {
         console.log('Event received: user.created ->', data);
+    });    
+    
+    await nats.on('user.pings', async (data) => {
+        console.log('Event received: PING ->', data.n);
     });
 
     console.log('Service running (demo/server.js)...');

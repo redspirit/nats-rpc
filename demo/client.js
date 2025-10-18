@@ -8,7 +8,6 @@ import { NATS } from '../src/index.js';
     const add = mathService.fn('add');
     const sqrt = mathService.fn('sqrt');
 
-
     // вызов RPC-метода
     try {
         const sum = await add(2, 3);
@@ -21,7 +20,13 @@ import { NATS } from '../src/index.js';
     }
 
     // публикация события user.created (fire-and-forget)
-    await nats.emit('user.created', { id: '1234', name: 'Alice (demo)' });   
+    await nats.emit('user.created', { id: '1234', name: 'Alice (demo)' });
+
+    let n = 0;
+    setInterval(() => {
+        n++;
+        nats.emit('user.pings', { n }).catch(console.error);
+    }, 1000);
 
     process.stdin.resume();
 })();
