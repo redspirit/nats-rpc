@@ -1,6 +1,6 @@
 {
     "name": "nats-rpc",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "description": "NodeJS NATS RPC library",
     "homepage": "https://github.com/redspirit/nats-rpc#readme",
     "bugs": {
